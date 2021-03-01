@@ -1,0 +1,129 @@
+body{
+    background: radial-gradient(#3666e0, #074490) no-repeat fixed center;
+    font-family: 'Trebuchet MS', sans-serif;
+    height: 100vh;
+  }
+  .pt-3-half {
+    padding-top: 1.4rem;
+    }
+  a {
+    color: #92badd;
+    display:inline-block;
+    text-decoration: none;
+    font-weight: 400;
+  }
+  
+
+  label {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    display:inline-block;
+    margin: 8px 8px 10px 8px; 
+    color: #ffffff;
+  }
+  
+  
+  .wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column; 
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
+    padding: 20px;
+  }
+  
+  #formContent {
+    border-radius: 10px 10px 10px 10px;
+    background: rgb(34, 60, 133);
+    padding: 30px;
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    padding: 0px;
+    box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  
+  #formHeader {
+    background-color: #3666e0;
+    border-bottom: 1px solid #dce8f1;
+    padding: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    border-radius: 10px 10px 0 0;
+  }
+
+  #formFooter {
+    background-color: #3666e0;
+    border-top: 1px solid #dce8f1;
+    padding: 25px;
+    text-align: center;
+    border-radius: 0 0 10px 10px;
+  }
+
+  .login{
+      opacity: 1;
+  }
+
+  #anon:checked ~ .login{
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  input[type=button], input[type=submit], input[type=reset]  {
+    background-color: #414141;
+    border: none;
+    color: white;
+    padding: 15px 80px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px 5px 5px 5px;
+    margin: 15px 20px 10px 20px;
+
+  }
+
+  input[type=button]:hover, input[type=submit]:hover {
+    background-color: #a0a0a0;
+  }
+  
+  input[type=text],input[type=password],input[type=datetime-local], select {
+    background-color: #f6f6f6;
+    border: none;
+    color: #0d0d0d;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px;
+    width: 85%;
+    border: 2px solid #f6f6f6;
+    border-radius: 5px 5px 5px 5px;
+  }
+  
+  input[type=text]:focus,input[type=password]:focus,select:focus {
+    background-color: #fff;
+    border-bottom: 2px solid #5fbae9;
+  }
+  
+  input[type=text]::placeholder,input[type=password]::placeholder,select::placeholder {
+    color: #cccccc;
+  }
+  
+  
+  .underlineHover:hover {
+    color: #0d0d0d;
+  }
+  
+  .underlineHover:hover:after{
+    width: 100%;
+  }
+
+  
+  #logo {
+    width:60%;
+  }
+  
