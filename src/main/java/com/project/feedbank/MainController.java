@@ -13,25 +13,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class MainController {
 
-	public final static String tempu = "admin";
-	public static final String tempp = "password";
-
 	@Autowired
 	private JdbcFBRepository db;
 	
 	public boolean loggedin(HttpSession httpSession){
-			String user = (String)httpSession.getAttribute("user");
-			if(user!=null && user !="loggedout"){
+			Integer userId = (Integer)httpSession.getAttribute("user");
+			if(userId!=null && userId !=-1){
 				return true;
 			}
 			return false;
 	}
 
-	@GetMapping("/events")
-	public String login(HttpSession httpSession) {
+
+	@GetMapping("/eventcreate")
+	public String eventCreation(HttpSession httpSession) {
 		if(!loggedin(httpSession)){
 			return "login";
 		}
+		return "eventcreate";
+	}
+
+	@PostMapping("/eventcreate")
+	public String creatEvent(HttpSession httpSession) {
+		if(!loggedin(httpSession)){
+			return "login";
+		}
+		return "eventcreate";
+	}
+
+	@GetMapping("/events")
+	public String login(HttpSession httpSession,@RequestParam("eventname") String username,
+	@RequestParam("templateid")String tempid,@RequestParam("anonymous") boolean allowanon) {
+		if(!loggedin(httpSession)){
+			return "login";
+		}
+
 		return "events";
 	}
 
@@ -47,8 +63,9 @@ public class MainController {
 	@PostMapping("login")
 	public String login(@RequestParam("username") String username,@RequestParam("password") String password,
 	HttpSession httpSession) {
-		if(db.validateCredentials(username,password)||(username.equals(tempu) && password.equals(tempp))){
-			httpSession.setAttribute("user", username);
+		int userId = db.validateCredentials(username,password);
+		if(userId!=-1){
+			httpSession.setAttribute("user", userId);
 			return "events";
 		}
 		return "login";
@@ -63,14 +80,14 @@ public class MainController {
 	}
 
 	@PostMapping("/signup")
-	public String register(@RequestParam("username") String username,@RequestParam("password") String password,
+	public String register(@RequestParam("firstname") String fname,@RequestParam("lastname") String lname,@RequestParam("username") String username,@RequestParam("password") String password,
 	@RequestParam("password") String password2,HttpSession httpSession) {
 		if(loggedin(httpSession)){
 			return "events";
 		}
 		if(password.equals(password2)){
-			db.createUser(username, password);
-			httpSession.setAttribute("user", username);
+			int userId = db.createUser(fname,lname,username, password);
+			httpSession.setAttribute("user", userId);
 			System.out.println("Created user "+username);
 			return "events";
 		}

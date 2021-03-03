@@ -14,18 +14,16 @@
     <div id="formHeader">
       <img src="./logo.png" id="logo" alt="logo" />
     </div>
-    <form>
-    <label > Create Event </label>
+    <form th:action="@{/eventcreate}" method="post">
+      <label > Create Event </label>
       <input type="text" id="eventname"  name="eventname" placeholder="Event name">
-      <select class="custom-select">
+      <select class="custom-select" name="templateid">
         <option selected>Select Template</option>
         <option value="1">One</option>
-        <option value="2">Two</option>
-        <option value="3">Three</option>
       </select>
-      <input type="text" id="cap"  name="capacity" placeholder="Event Capacity">
+     <!--  <input type="text" id="cap"  name="capacity" placeholder="Event Capacity">-->
       <label for="anon"> Allow Anonymous Users </label>
-      <input type="checkbox" id="anon" name = "anon" >
+      <input type="checkbox" id="anon" name = "anonymous" >
       <input type="submit"  value="Create Event">
     </form>
 
