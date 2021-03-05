@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,9 @@
       <input type="text" id="eventname"  name="eventname" placeholder="Event name">
       <select class="custom-select" name="templateid">
         <option selected>Select Template</option>
-        <option value="1">One</option>
+        <th:block th:each="template : ${templates}">
+          <option th:value="${template.templateid}" th:text="${template.templatename}"></option>
+        </th:block>
       </select>
      <!--  <input type="text" id="cap"  name="capacity" placeholder="Event Capacity">-->
       <label for="anon"> Allow Anonymous Users </label>
@@ -28,7 +30,7 @@
     </form>
 
     <div id="formFooter">
-        <a class="underlineHover" href="">Return to Menu</a>
+      <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
     </div>
 
   </div>

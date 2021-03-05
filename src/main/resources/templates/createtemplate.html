@@ -14,25 +14,38 @@
     <div id="formHeader">
       <img src="./logo.png" id="logo" alt="logo" />
     </div>
-    <form>
-    <label > Create Template </label>
-    <input type="text" id="login" name="code" placeholder="Template name">
+    <form th:action="@{/createtemplate}" method="post">  
+        <label > Create Template </label>
+    <input type="text" id="login" name="templatename" placeholder="Template name">
 
     </br>
-    <input type="button" value="Add Question" onclick="addRow('templateTable')" />
-
-
+    <input type="button" value="Add Question" onclick="addQuestion('templateTable','cloneQuestion')" />
+    <input type="button" value="Add Multiple choice Question" onclick="addQuestion('templateTable','cloneMultichoice')" />
     <table id="templateTable" class="table table-dark" >
-      <tr>
+      <tr id="cloneQuestion" class="hidden">
         <td><button type="button" class="btn btn-danger" onclick="deleteRow(this.parentNode.parentNode.id)">X</button>
         </td>
-        <td><input type="text" name="question[]"/></td>
+        <td><input type="text" class="questiontext" name=""/></td>
       </tr>
+
+      <tr id="cloneMultichoice" class="hidden">
+        <td><button type="button" class="btn btn-danger" onclick="deleteRow(this.parentNode.parentNode.id)">X</button>
+        </td>
+        <td><input type="text" class="questiontext" name=""/></td>
+        <td><button type="button" class="btn btn-primary" onclick="addChoice(this.parentNode.parentNode.id)">Add choice</button>
+        <td id="" class="hidden">
+          <button type="button" class="btn btn-danger" onclick="deleteRow(this.parentNode.id)">X</button>
+
+          <input type="text" class="questiontext" name=""/>        
+        </td>
+
+      </tr>   
     </table>
       <input type="submit"  value="Create template">
     </form>
 
     <div id="formFooter">
+      <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
     </div>
 
 
@@ -40,34 +53,36 @@
   </div>
 </div>
 <SCRIPT language="javascript">
-  var rid = 0
-  function addRow(tableID) {
+  var qid = 0;
+  var mid = 0;
+  function addChoice(rid){
+    var row = document.getElementById(rid);
+    var toClone = row.querySelector(".hidden");
+    var clone = toClone.cloneNode(true);
+    clone.id="m"+mid;
+    var choiceText = clone.querySelector(".questiontext")
+    choiceText.setAttribute("name","q"+qid+"m"+mid);
+    clone.setAttribute('class','');
+    row.appendChild(clone);
+    mid+=1;
+
+  }
+
+  
+  function addQuestion(tableID,qtype) {
 
     var table = document.getElementById(tableID);
+    var toClone =  document.getElementById(qtype);
+    var clone = toClone.cloneNode(true);
+    clone.id="q"+qid;
+    var qtext = clone.querySelector(".questiontext");
+    qtext.setAttribute("name","q"+qid);
+    clone.setAttribute('class','');
 
-    var rowCount = table.rows.length;
-    var row = table.insertRow(rowCount);
-    row.id = "rid"+rid
-    rid+=1
-    var colCount = table.rows[0].cells.length;
+    table.appendChild(clone);
 
-    for(var i=0; i<colCount; i++) {
+    qid+=1;
 
-      var newcell	= row.insertCell(i);
-
-      newcell.innerHTML = table.rows[0].cells[i].innerHTML;
-      switch(newcell.childNodes[0].type) {
-        case "text":
-            newcell.childNodes[0].value = "";
-            break;
-        case "checkbox":
-            newcell.childNodes[0].checked = false;
-            break;
-        case "select-one":
-            newcell.childNodes[0].selectedIndex = 0;
-            break;
-      }
-    }
   }
 
   function deleteRow(rowID) {

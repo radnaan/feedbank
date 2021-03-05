@@ -16,6 +16,7 @@ CREATE TABLE templates (
     PRIMARY KEY (TemplateID)
 );
 
+--changed feedbacktime to integer
 DROP TABLE events CASCADE;
 CREATE TABLE events (
     EventID         SERIAL,
@@ -24,7 +25,7 @@ CREATE TABLE events (
     EventStatus     VARCHAR NOT NULL CHECK (EventStatus = 'Active' OR EventStatus = 'Inactive' OR EventStatus = 'Ended'),
     TemplateID      INTEGER NOT NULL,
     RequiredLogin   BOOLEAN NOT NULL,
-    FeedbackTime    INTERVAL NOT NULL,
+    FeedbackTime    INTEGER NOT NULL,
     AllowAnon       BOOLEAN NOT NULL,
     PRIMARY KEY (EventID),
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
@@ -117,7 +118,8 @@ CREATE TABLE user_events (
     FOREIGN KEY (EventID) REFERENCES events(EventID) ON DELETE CASCADE
 );
 
-CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templateID INTEGER, requiredLogin BOOLEAN, feedbackTime INTERVAL, allowAnon BOOLEAN, userID INTEGER)
+--changed feedbacktime to integer
+CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templateID INTEGER, requiredLogin BOOLEAN, feedbackTime INTEGER, allowAnon BOOLEAN, userID INTEGER)
     RETURNS void
     LANGUAGE plpgsql AS
     $$
@@ -160,12 +162,14 @@ CREATE OR REPLACE FUNCTION validate_login(usrname VARCHAR, psswrd VARCHAR)
     LANGUAGE plpgsql AS
     $$
     DECLARE
-        ID INTEGER := -1; 
+        ID INTEGER; 
     BEGIN
 
         SELECT userID FROM users WHERE username=usrname AND userpassword =psswrd
         INTO ID;
-
+		IF ID IS NULL then
+		 ID := -1;
+		END IF;
         return ID;
     END
     $$;

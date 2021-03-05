@@ -1,5 +1,9 @@
 package com.project.feedbank;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,36 +30,69 @@ public class MainController {
 
 
 	@GetMapping("/eventcreate")
-	public String eventCreation(HttpSession httpSession) {
+	public String eventCreation(HttpSession httpSession,Model model) {
 		if(!loggedin(httpSession)){
-			return "login";
+			return "redirect:login";
 		}
+		ArrayList<Template> templates = db.getTemplates((int)httpSession.getAttribute("user"));
+
+		model.addAttribute("templates", templates);
 		return "eventcreate";
 	}
 
 	@PostMapping("/eventcreate")
-	public String creatEvent(HttpSession httpSession) {
+	public String createEvent(HttpSession httpSession,@RequestParam("eventname") String eventname,
+	@RequestParam("templateid")int tempid,@RequestParam("anonymous") boolean allowanon) {
 		if(!loggedin(httpSession)){
-			return "login";
+			return "redirect:login";
 		}
-		return "eventcreate";
-	}
-
-	@GetMapping("/events")
-	public String login(HttpSession httpSession,@RequestParam("eventname") String username,
-	@RequestParam("templateid")String tempid,@RequestParam("anonymous") boolean allowanon) {
-		if(!loggedin(httpSession)){
-			return "login";
-		}
-
+		db.createEvent((int)httpSession.getAttribute("user"), eventname, tempid, allowanon);
 		return "events";
 	}
 
 
+	@GetMapping("/createtemplate")
+	public String templateCreation(HttpSession httpSession) {
+		if(!loggedin(httpSession)){
+			return "redirect:login";
+		}
+		return "createtemplate";
+	}
+
+	@PostMapping("/createtemplate")
+	public String createTemplate(HttpSession httpSession,@RequestParam Map<String,String> allParams) {
+		if(!loggedin(httpSession)){
+			return "redirect:login";
+		}
+		String templateName = "";
+		String[] questions = new String[allParams.size()-1];
+		String[] qTypes = new String[allParams.size()-1];
+		int idx = 0;
+		for(Map.Entry<String, String> entry : allParams.entrySet()){
+			if(entry.getKey().equals("templatename"))
+				templateName = entry.getValue();
+			else{
+				questions[idx]=(entry.getValue());
+				qTypes[idx]=("Text");
+				idx+=1;
+			}
+		}
+		db.createTemplate((int)httpSession.getAttribute("user"), templateName, questions, qTypes);
+
+		return "redirect:events";
+	}
+
+	@GetMapping("/events")
+	public String eventsLanding(HttpSession httpSession) {
+		if(!loggedin(httpSession)){
+			return "redirect:login";
+		}
+		return "events";
+	}
 	@GetMapping("/login")
 	public String loginForm(HttpSession httpSession) {
 		if(loggedin(httpSession)){
-			return "events";
+			return "redirect:events";
 		}
 		return "login";
 	}
@@ -66,7 +103,7 @@ public class MainController {
 		int userId = db.validateCredentials(username,password);
 		if(userId!=-1){
 			httpSession.setAttribute("user", userId);
-			return "events";
+			return "redirect:events";
 		}
 		return "login";
 	}
@@ -74,7 +111,7 @@ public class MainController {
 	@GetMapping("/signup")
 	public String signup(HttpSession httpSession) {
 		if(loggedin(httpSession)){
-			return "events";
+			return "redirect:events";
 		}
 		return "signup";
 	}
@@ -89,15 +126,15 @@ public class MainController {
 			int userId = db.createUser(fname,lname,username, password);
 			httpSession.setAttribute("user", userId);
 			System.out.println("Created user "+username);
-			return "events";
+			return "redirect:events";
 		}
-		return "/signup";
+		return "redirect:/signup";
 	}
 
 	@GetMapping("/signout")
 	public String logout(HttpSession httpSession) {
 		httpSession.removeAttribute("user");
-		return "login";
+		return "redirect:login";
 	}
 
 	@GetMapping("/anonymous_account")

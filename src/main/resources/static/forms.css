@@ -85,6 +85,10 @@ body{
 
   }
 
+  .hidden {
+    display: none;
+  }
+
   input[type=button]:hover, input[type=submit]:hover {
     background-color: #a0a0a0;
   }
