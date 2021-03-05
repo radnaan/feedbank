@@ -60,7 +60,7 @@ public class JdbcFBRepository {
 
     }
 
-    
+
 
     public ArrayList<Template> getTemplates(int userId){
         PreparedStatement statement = null;
@@ -81,6 +81,25 @@ public class JdbcFBRepository {
         return templates;
     }
 
+
+    public ArrayList<Template> getEvents(int userId){
+        PreparedStatement statement = null;
+		ResultSet results = null;
+        ArrayList<Template> templates = new ArrayList<>();
+        try {
+            Connection conn = jdbcTemplate.getDataSource().getConnection();
+            statement =  conn.prepareStatement("SELECT * FROM events WHERE ");
+            statement.setInt(1,userId);
+			results = statement.executeQuery();
+			while (results.next()) {
+				Template template = new Template(results.getInt(1),results.getString(2),results.getBoolean(3));
+                templates.add(template);
+			}
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return templates;
+    }
     private String generatePassword () {
         Scanner S = new Scanner(System.in);
         int length = 8;
