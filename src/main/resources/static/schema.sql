@@ -38,8 +38,8 @@ CREATE TABLE sesh (
     TemplateID      INTEGER NOT NULL,
     SeshName        VARCHAR NOT NULL,
     SeshEnded       BOOLEAN NOT NULL,
-    SeshDateStart   Date NOT NULL,
-    SeshDateEnd     Date NOT NULL,
+    SeshDateStart   TIMESTAMP NOT NULL,
+    SeshDateEnd     TIMESTAMP NOT NULL,
     PRIMARY KEY (SeshID),
     FOREIGN KEY (EventID)    REFERENCES events(EventID)       ON DELETE CASCADE,
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
@@ -52,7 +52,7 @@ CREATE TABLE feedback (
     SeshID          INTEGER NOT NULL,
     TemplateID      INTEGER NOT NULL,
     OverallMood     VARCHAR NOT NULL CHECK (OverallMood = 'Positive' OR OverallMood = 'Neutral' OR OverallMood = 'Negative'),
-    DatePlaced      DATE NOT NULL,
+    DatePlaced      TIMESTAMP NOT NULL,
     PRIMARY KEY (FeedbackID),
     FOREIGN KEY (UserID)     REFERENCES users(UserID)         ON DELETE CASCADE,
     FOREIGN KEY (SeshID)     REFERENCES sesh(SeshID)          ON DELETE CASCADE,
@@ -183,7 +183,7 @@ CREATE OR REPLACE FUNCTION assign_user(usID INTEGER, evID INTEGER)
     VALUES (usID, evID, 'Attendee');
     $$;
 
-CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName VARCHAR, shStartDate DATE, shEndDate DATE)
+CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName VARCHAR, shStartDate TIMESTAMP, shEndDate TIMESTAMP)
     RETURNS void
     LANGUAGE SQL AS
     $$
@@ -261,7 +261,7 @@ CREATE OR REPLACE FUNCTION create_default_template(tempName VARCHAR, questions V
     END
     $$;
 
-CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID INTEGER, mood VARCHAR, datePlaced DATE, questionIDs INTEGER[], answertxt VARCHAR[], answermoods VARCHAR[], choices VARCHAR[][])
+CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID INTEGER, mood VARCHAR, datePlaced TIMESTAMP, questionIDs INTEGER[], answertxt VARCHAR[], answermoods VARCHAR[], choices VARCHAR[][])
     RETURNS void
     LANGUAGE plpgsql AS
     $$
@@ -309,12 +309,32 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
     RETURNS TABLE
         (EventID INTEGER,
          EventName VARCHAR,
-         EventCode VARCHAR)
+         EventCode VARCHAR,
+         EventStatus VARCHAR,
+         RequiredLogin BOOLEAN,
+         FeedbackTime INTEGER,
+         AllowAnon BOOLEAN,
+         UserRole VARCHAR,
+         NextSeshID INTEGER,
+         NextSeshDate TIMESTAMP
+        )
     LANGUAGE SQL AS
     $$
-    SELECT eventID, eventName, eventCode
-    FROM user_events INNER JOIN events USING (EventID)
-    WHERE UserRole = 'Attendee' AND UserID = usID;
+    SELECT eventID, eventName, eventCode, eventStatus, requiredLogin, feedbackTime, allowAnon, userRole, seshID, seshdatestart
+    FROM (
+        SELECT *, rank() 
+        OVER (PARTITION BY eventID ORDER BY seshdatestart ASC) 
+        FROM (
+            SELECT *
+            FROM (
+                SELECT *
+                FROM user_events INNER JOIN events USING (EventID)
+                WHERE UserID = usID
+            ) AS vro
+            INNER JOIN sesh
+            USING (eventID)
+        ) AS stuff
+    ) as yolo where rank = 1;
     $$;
 
 CREATE OR REPLACE FUNCTION get_templates(usID INTEGER)
