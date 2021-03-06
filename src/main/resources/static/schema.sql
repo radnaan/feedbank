@@ -189,8 +189,6 @@ CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName V
     $$
     INSERT INTO sesh (EventID, TemplateID, SeshName, SeshEnded, SeshDateStart, SeshDateEnd)
     VALUES (evID, tempID, shName, FALSE, shStartDate, shEndDate);
-
-    UPDATE events SET EventStatus = 'Active' WHERE EventID = evID;
     $$;
 
 CREATE OR REPLACE FUNCTION create_template(userID INTEGER, tempName VARCHAR, questions VARCHAR[], types VARCHAR[], choices VARCHAR[][])
@@ -320,6 +318,7 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
         )
     LANGUAGE SQL AS
     $$
+    SELECT * FROM update_activity();
     SELECT eventID, eventName, eventCode, eventStatus, requiredLogin, feedbackTime, allowAnon, userRole, seshID, seshdatestart
     FROM (
         SELECT *, rank() 
@@ -330,11 +329,28 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
                 SELECT *
                 FROM user_events INNER JOIN events USING (EventID)
                 WHERE UserID = usID
-            ) AS vro
-            INNER JOIN sesh
+            ) AS EventsIncludingUser
+            LEFT OUTER JOIN 
+                (SELECT * 
+                FROM sesh
+                WHERE seshdatestart > CURRENT_TIMESTAMP
+            ) AS FutureSessions
             USING (eventID)
-        ) AS stuff
-    ) as yolo where rank = 1;
+        ) AS FutureSessionsForUser
+    ) as NextSessions where rank = 1;
+    $$;
+
+CREATE OR REPLACE FUNCTION update_activity()
+    RETURNS void
+    LANGUAGE SQL AS
+    $$
+    UPDATE events SET EventStatus = 'Inactive' WHERE EventStatus = 'Active';
+    UPDATE events SET EventStatus = 'Active' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP
+    );
     $$;
 
 CREATE OR REPLACE FUNCTION get_templates(usID INTEGER)
