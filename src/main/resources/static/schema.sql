@@ -22,7 +22,7 @@ CREATE TABLE events (
     EventID         SERIAL,
     EventName       VARCHAR NOT NULL,
     EventCode       VARCHAR NOT NULL,
-    EventStatus     VARCHAR NOT NULL CHECK (EventStatus = 'Active' OR EventStatus = 'Inactive' OR EventStatus = 'Ended'),
+    EventStatus     VARCHAR NOT NULL CHECK (EventStatus = 'Active' OR EventStatus = 'Inactive with future session' OR EventStatus = 'Inactive without future session' OR EventStatus = 'Ended'),
     TemplateID      INTEGER NOT NULL,
     RequiredLogin   BOOLEAN NOT NULL,
     FeedbackTime    INTEGER NOT NULL,
@@ -127,7 +127,7 @@ CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templat
         ID INTEGER; 
     BEGIN
         INSERT INTO events (EventName, EventCode, EventStatus, TemplateID, RequiredLogin, FeedbackTime, AllowAnon)
-        VALUES (eventName, code, 'Inactive', templateID, requiredLogin, feedbackTime, allowAnon);
+        VALUES (eventName, code, 'Inactive without future session', templateID, requiredLogin, feedbackTime, allowAnon);
 
         SELECT currval('events_EventID_seq')
         INTO ID;
@@ -344,12 +344,18 @@ CREATE OR REPLACE FUNCTION update_activity()
     RETURNS void
     LANGUAGE SQL AS
     $$
-    UPDATE events SET EventStatus = 'Inactive' WHERE EventStatus = 'Active';
+    UPDATE events SET EventStatus = 'Inactive without future session' WHERE EventStatus <> 'Ended';
     UPDATE events SET EventStatus = 'Active' 
     WHERE EventID IN (
         SELECT eventID 
         FROM events INNER JOIN sesh 
-        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP
+        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
+    );
+    UPDATE events SET EventStatus = 'Inactive with future session' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
     );
     $$;
 
