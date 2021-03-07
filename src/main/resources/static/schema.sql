@@ -333,7 +333,7 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
             LEFT OUTER JOIN 
                 (SELECT * 
                 FROM sesh
-                WHERE seshdatestart > CURRENT_TIMESTAMP
+                WHERE seshdateend > CURRENT_TIMESTAMP
             ) AS FutureSessions
             USING (eventID)
         ) AS FutureSessionsForUser
