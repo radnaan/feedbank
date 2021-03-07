@@ -382,3 +382,11 @@ CREATE OR REPLACE FUNCTION get_questions(tempID INTEGER)
     FROM questions
     WHERE TemplateID = tempID;
     $$;
+
+CREATE OR REPLACE FUNCTION end_event(eID INTEGER)
+    RETURNS void
+    LANGUAGE SQL AS
+    $$
+    UPDATE events SET EventStatus = 'Ended' 
+    WHERE EventID = eID;
+    $$;
