@@ -11,7 +11,7 @@
 </head>
 <body>
   <nav id="jojo" class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">      <img src="./logo.png" id="logo" alt="logo" />
+    <a class="navbar-brand" href="">      <img src="./logo.png" id="logo" alt="logo" />
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -19,16 +19,19 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item active">
-          <a class="nav-link" href="#">Home</a>
+          <a class="nav-link" th:href="@{/events}">Home</a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link" href="#">Create Event</a>
+          <a class="nav-link" th:href="@{/join}"><b>Join Event</b></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" th:href="@{/eventcreate}">Create Event</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Create Template</a>
+          <a class="nav-link" th:href="@{/createtemplate}">Create Template</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Logout</a>
+          <a class="nav-link" th:href="@{/signout}">Logout</a>
         </li>
 
       </ul>
@@ -38,10 +41,10 @@
 
   <div class="container">
 
-      <h1>Event 9000 | Session A</h1>
+      <h1 th:text="'Event '+${sessionInfo.eventName} + ' | Session ' +${sessionInfo.sessionName}"></h1>
       <hr>
       <h3> Audience Mood: </h3>
-      <h5> Event Ends: 3pm </h3>
+      <h5 th:text="'Event Ends: ' + ${sessionInfo.sessionEndDate} "></h5>
 
 
       <div class="overflow-auto p-3 mb-3 mb-md-0 mr-md-3 bg-light" style="max-width: 100%; max-height: 800px;">
