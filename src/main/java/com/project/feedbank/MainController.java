@@ -41,8 +41,8 @@ public class MainController {
 		}
 		SessionInfo sessionInfo = db.getSessionInfo(eventid,sessionid);
 		model.addAttribute("sessionInfo",sessionInfo);
-		String[] questions = db.getQuestions(sessionInfo.templateId);
-		model.addAttribute("questions",sessionInfo);
+		ArrayList<Questions> questions = db.getQuestions(sessionInfo.templateId);
+		model.addAttribute("questions",questions);
 
 		return "feedback";
 	}
@@ -86,7 +86,7 @@ public class MainController {
 		} 
 
 		model.addAttribute("eventid",eventid);
-		computeEvents(httpSession);
+		//computeEvents(httpSession);
 
 		return  "redirect:events";
 	}
@@ -188,13 +188,9 @@ public class MainController {
 			return "redirect:login";
 		}
 		//ArrayList<Event> events = (ArrayList<Event>) httpSession.getAttribute("events");
-		ArrayList<Event> events = db.getEvents((int) httpSession.getAttribute("user"));
-		//Mood mood = SemanticAnalyser.getClassification("Good");
+		ArrayList<Event> events = (ArrayList<Event>) db.getEvents((int) httpSession.getAttribute("user"));
 		model.addAttribute("events", events);
-		for(Event e : events){
-			//System.out.println(e.userRole);
-			//System.out.println(e.eventStatus);
-		}
+	
 		model.addAttribute("event_num", events.size());
 		return "events";
 	}

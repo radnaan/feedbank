@@ -26,8 +26,8 @@
 
       <select class="custom-select">
         <option selected>Select Question</option>
-        <th:block th:each="questions : ${questions}">
-          <option th:value="${question}" th:text="${questions}"></option>
+        <th:block th:each="question : ${questions}">
+          <option th:value="${question.question}" th:text="${question.question}"></option>
         </th:block>
 
                 <textarea  rows="3" placeholder="Enter response here" ></textarea>
@@ -35,7 +35,7 @@
       <input type="submit"  value="Submit response">
 
     <div id="formFooter">
-      <a class="underlineHover" href="">Home</a>
+      <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
     </div>
 
   </div>
