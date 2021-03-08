@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import ch.qos.logback.core.boolex.EventEvaluator;
+
 @Controller
 public class MainController {
 
@@ -110,7 +112,7 @@ public class MainController {
 
 	@PostMapping("/eventcreate")
 	public String createEvent(HttpSession httpSession,@RequestParam("eventname") String eventname,
-	@RequestParam("templateid")int tempid,@RequestParam("anonymous") boolean allowanon) {
+	@RequestParam("templateid")int tempid,@RequestParam(value ="anonymous",defaultValue = "false") boolean allowanon) {
 		if(!loggedin(httpSession)){
 			return "redirect:login";
 		}
@@ -159,7 +161,7 @@ public class MainController {
 	}
 
 	@PostMapping("/join")
-	public String joinEvent(HttpSession httpSession,@RequestParam("code") String code) {
+	public String joinEvent(HttpSession httpSession,@RequestParam("code") String code,@RequestParam(value ="anonymous",defaultValue = "false") boolean allowanon) {
 		int validCode = db.joinEvent(code,(int)httpSession.getAttribute("user"));
 		if(validCode!=-1){
 			computeEvents(httpSession);
@@ -187,12 +189,13 @@ public class MainController {
 		}
 		//ArrayList<Event> events = (ArrayList<Event>) httpSession.getAttribute("events");
 		ArrayList<Event> events = db.getEvents((int) httpSession.getAttribute("user"));
-
+		//Mood mood = SemanticAnalyser.getClassification("Good");
 		model.addAttribute("events", events);
 		for(Event e : events){
 			//System.out.println(e.userRole);
 			//System.out.println(e.eventStatus);
 		}
+		model.addAttribute("event_num", events.size());
 		return "events";
 	}
 	@GetMapping("/login")
@@ -242,13 +245,15 @@ public class MainController {
 	@GetMapping("/signout")
 	public String logout(HttpSession httpSession) {
 		httpSession.removeAttribute("user");
+		httpSession.removeAttribute("anonymous");
+
 		return "redirect:login";
 	}
 
 	@GetMapping("/anonymous_account")
 	public String anonymous_account(HttpSession httpSession) {
-		
-		return "login";
+		httpSession.setAttribute("anonymous","true");
+		return register("","","anonymousQZX!","password","password",httpSession);
 	}
 
 }

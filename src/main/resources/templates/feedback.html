@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,10 +26,9 @@
 
       <select class="custom-select">
         <option selected>Select Question</option>
-        <option value="1">One</option>
-        <option value="2">Two</option>
-        <option value="3">Own Question</option>
-      </select>
+        <th:block th:each="questions : ${questions}">
+          <option th:value="${question}" th:text="${questions}"></option>
+        </th:block>
 
                 <textarea  rows="3" placeholder="Enter response here" ></textarea>
 

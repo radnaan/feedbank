@@ -40,6 +40,14 @@
   </nav>
 
   <div class="container">
+    <div th:if="${event_num == 0}">
+      <div class="card border-success mb-3" >
+        <div class="card-header">No events assigned</div>
+        <div class="card-body text-success">
+          <p class="card-text">Click here to <a  th:href="@{/join}">join</a> an event or to <a th:href="@{/eventcreate}">create</a> one.</p>
+        </div>
+      </div>
+    </div>
     <th:block th:each="event : ${events}">
       <div class="card">
         <h5 class="card-header" th:text="${event.eventName}"></h5>
