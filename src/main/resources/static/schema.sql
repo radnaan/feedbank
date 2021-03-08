@@ -390,3 +390,11 @@ CREATE OR REPLACE FUNCTION end_event(eID INTEGER)
     UPDATE events SET EventStatus = 'Ended' 
     WHERE EventID = eID;
     $$;
+
+CREATE OR REPLACE FUNCTION end_session(seID INTEGER)
+    RETURNS void
+    LANGUAGE SQL AS
+    $$
+    UPDATE sesh SET seshdateend = CURRENT_TIMESTAMP 
+    WHERE seshID = seID;
+    $$;
