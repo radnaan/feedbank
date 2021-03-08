@@ -16,7 +16,7 @@
     <div id="formHeader">
       <img src="./logo.png" id="logo" alt="logo" />
     </div>
-    <form>
+    <form th:action="@{/join}" method="post">  
       <input type="text" id="login" name="code" placeholder="Event Code">
       <label for="anon"> Anonymous </label>
       <input type="checkbox" id="anon" name = "anon" value="Anonymous">
@@ -24,7 +24,7 @@
     </form>
 
     <div id="formFooter">
-      <a class="underlineHover" href="">Capture QR Code</a>
+      <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
     </div>
 
   </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,27 +14,26 @@
     <div id="formHeader">
       <img src="./logo.png" id="logo" alt="logo" />
     </div>
-    <form>
-    <label > Create Session </label>
+    <form th:action="@{/sessioncreate}" method="post">  
+      <label > Create Session </label>
       <input type="text" id="sessionname"  name="sessionname" placeholder="Session name">
-      <select class="custom-select">
+      <select class="custom-select" name="templateid">
         <option selected>Select Template</option>
-        <option value="1">One</option>
-        <option value="2">Two</option>
-        <option value="3">Three</option>
+        <th:block th:each="template : ${templates}">
+          <option th:value="${template.templateid}" th:text="${template.templatename}"></option>
+        </th:block>
       </select>
-      <input type="text" id="cap"  name="capacity" placeholder="Session Capacity">
       <label for="startdate"> Start date </label>
       <input type="datetime-local" id="startdate" name = "startdate" >
       <label for="enddate"> End date </label>
-
+      <input type="hidden" name="eventid" th:value=${eventid}>
       <input type="datetime-local" id="enddate" name = "enddate" >
 
       <input type="submit"  value="Create Session">
     </form>
 
     <div id="formFooter">
-        <a class="underlineHover" href="">Return to Menu</a>
+      <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
     </div>
 
   </div>

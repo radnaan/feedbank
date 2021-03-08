@@ -22,7 +22,7 @@ CREATE TABLE events (
     EventID         SERIAL,
     EventName       VARCHAR NOT NULL,
     EventCode       VARCHAR NOT NULL,
-    EventStatus     VARCHAR NOT NULL CHECK (EventStatus = 'Active' OR EventStatus = 'Inactive' OR EventStatus = 'Ended'),
+    EventStatus     VARCHAR NOT NULL CHECK (EventStatus = 'Active' OR EventStatus = 'Inactive with future session' OR EventStatus = 'Inactive without future session' OR EventStatus = 'Ended'),
     TemplateID      INTEGER NOT NULL,
     RequiredLogin   BOOLEAN NOT NULL,
     FeedbackTime    INTEGER NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE sesh (
     TemplateID      INTEGER NOT NULL,
     SeshName        VARCHAR NOT NULL,
     SeshEnded       BOOLEAN NOT NULL,
-    SeshDateStart   Date NOT NULL,
-    SeshDateEnd     Date NOT NULL,
+    SeshDateStart   TIMESTAMP NOT NULL,
+    SeshDateEnd     TIMESTAMP NOT NULL,
     PRIMARY KEY (SeshID),
     FOREIGN KEY (EventID)    REFERENCES events(EventID)       ON DELETE CASCADE,
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
@@ -52,7 +52,7 @@ CREATE TABLE feedback (
     SeshID          INTEGER NOT NULL,
     TemplateID      INTEGER NOT NULL,
     OverallMood     VARCHAR NOT NULL CHECK (OverallMood = 'Positive' OR OverallMood = 'Neutral' OR OverallMood = 'Negative'),
-    DatePlaced      DATE NOT NULL,
+    DatePlaced      TIMESTAMP NOT NULL,
     PRIMARY KEY (FeedbackID),
     FOREIGN KEY (UserID)     REFERENCES users(UserID)         ON DELETE CASCADE,
     FOREIGN KEY (SeshID)     REFERENCES sesh(SeshID)          ON DELETE CASCADE,
@@ -127,7 +127,7 @@ CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templat
         ID INTEGER; 
     BEGIN
         INSERT INTO events (EventName, EventCode, EventStatus, TemplateID, RequiredLogin, FeedbackTime, AllowAnon)
-        VALUES (eventName, code, 'Inactive', templateID, requiredLogin, feedbackTime, allowAnon);
+        VALUES (eventName, code, 'Inactive without future session', templateID, requiredLogin, feedbackTime, allowAnon);
 
         SELECT currval('events_EventID_seq')
         INTO ID;
@@ -153,6 +153,19 @@ CREATE OR REPLACE FUNCTION create_user(firstName VARCHAR, lastName VARCHAR, user
         INSERT INTO user_templates (UserID, TemplateID)
         SELECT ID, templateID FROM templates WHERE Editable = FALSE;
         return ID;
+    END
+    $$;
+
+
+CREATE OR REPLACE FUNCTION validate_code(code VARCHAR)
+    RETURNS INTEGER
+    LANGUAGE plpgsql AS
+    $$
+    DECLARE
+        evid INTEGER; 
+    BEGIN
+        SELECT EventID FROM Events WHERE EventCode = code INTO evid;
+        RETURN evid;
     END
     $$;
 
@@ -183,14 +196,12 @@ CREATE OR REPLACE FUNCTION assign_user(usID INTEGER, evID INTEGER)
     VALUES (usID, evID, 'Attendee');
     $$;
 
-CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName VARCHAR, shStartDate DATE, shEndDate DATE)
+CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName VARCHAR, shStartDate TIMESTAMP, shEndDate TIMESTAMP)
     RETURNS void
     LANGUAGE SQL AS
     $$
     INSERT INTO sesh (EventID, TemplateID, SeshName, SeshEnded, SeshDateStart, SeshDateEnd)
     VALUES (evID, tempID, shName, FALSE, shStartDate, shEndDate);
-
-    UPDATE events SET EventStatus = 'Active' WHERE EventID = evID;
     $$;
 
 CREATE OR REPLACE FUNCTION create_template(userID INTEGER, tempName VARCHAR, questions VARCHAR[], types VARCHAR[], choices VARCHAR[][])
@@ -261,7 +272,7 @@ CREATE OR REPLACE FUNCTION create_default_template(tempName VARCHAR, questions V
     END
     $$;
 
-CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID INTEGER, mood VARCHAR, datePlaced DATE, questionIDs INTEGER[], answertxt VARCHAR[], answermoods VARCHAR[], choices VARCHAR[][])
+CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID INTEGER, mood VARCHAR, datePlaced TIMESTAMP, questionIDs INTEGER[], answertxt VARCHAR[], answermoods VARCHAR[], choices VARCHAR[][])
     RETURNS void
     LANGUAGE plpgsql AS
     $$
@@ -309,12 +320,74 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
     RETURNS TABLE
         (EventID INTEGER,
          EventName VARCHAR,
-         EventCode VARCHAR)
+         EventCode VARCHAR,
+         EventStatus VARCHAR,
+         RequiredLogin BOOLEAN,
+         FeedbackTime INTEGER,
+         AllowAnon BOOLEAN,
+         UserRole VARCHAR,
+         NextSeshID INTEGER,
+         NextSeshDate TIMESTAMP
+        )
     LANGUAGE SQL AS
     $$
-    SELECT eventID, eventName, eventCode
-    FROM user_events INNER JOIN events USING (EventID)
-    WHERE UserRole = 'Attendee' AND UserID = usID;
+    SELECT * FROM update_activity();
+    SELECT eventID, eventName, eventCode, eventStatus, requiredLogin, feedbackTime, allowAnon, userRole, seshID, seshdatestart
+    FROM (
+        SELECT *, rank() 
+        OVER (PARTITION BY eventID ORDER BY seshdatestart ASC) 
+        FROM (
+            SELECT *
+            FROM (
+                SELECT *
+                FROM user_events INNER JOIN events USING (EventID)
+                WHERE UserID = usID
+            ) AS EventsIncludingUser
+            LEFT OUTER JOIN 
+                (SELECT * 
+                FROM sesh
+                WHERE seshdateend > CURRENT_TIMESTAMP
+            ) AS FutureSessions
+            USING (eventID)
+        ) AS FutureSessionsForUser
+    ) as NextSessions where rank = 1;
+    $$;
+
+CREATE OR REPLACE FUNCTION get_session_info( evid INTEGER,sshid INTEGER)
+    RETURNS TABLE
+        (EventName VARCHAR,
+         EventCode VARCHAR,
+	    SeshName VARCHAR,
+	    SeshDateEnd TIMESTAMP,
+		 TemplateID INTEGER
+        )
+    LANGUAGE SQL AS
+    $$
+        SELECT eventName, eventCode, seshName, seshDateEnd, Templates.templateID 
+		FROM Events INNER JOIN  sesh ON Events.EventID = sesh.EventID 
+        INNER JOIN Templates ON  sesh.templateID = Templates.templateID
+		WHERE Events.EventID= evid AND sesh.SeshID = sshid;
+    $$;
+
+
+
+CREATE OR REPLACE FUNCTION update_activity()
+    RETURNS void
+    LANGUAGE SQL AS
+    $$
+    UPDATE events SET EventStatus = 'Inactive without future session' WHERE EventStatus <> 'Ended';
+    UPDATE events SET EventStatus = 'Active' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
+    );
+    UPDATE events SET EventStatus = 'Inactive with future session' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
+    );
     $$;
 
 CREATE OR REPLACE FUNCTION get_templates(usID INTEGER)

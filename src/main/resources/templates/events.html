@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,10 +19,10 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item active">
-          <a class="nav-link" href="#">Home</a>
+          <a class="nav-link" href="">Home</a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link" href="#">Join Event</a>
+          <a class="nav-link" th:href="@{/join}"><b>Join Event</b></a>
         </li>
         <li class="nav-item active">
           <a class="nav-link" th:href="@{/eventcreate}">Create Event</a>
@@ -40,63 +40,27 @@
   </nav>
 
   <div class="container">
+    <th:block th:each="event : ${events}">
+      <div class="card">
+        <h5 class="card-header" th:text="${event.eventName}"></h5>
+        <div class="card-body">
+          <div th:if="${event.userRole=='Host'}">
+            <h5 class="card-title">Your event, </h5>
+            <a th:if="${event.eventStatus=='Inactive without future session'}" th:href="@{'/sessioncreate'(eventid=${event.eventId})}" class="btn btn-success" >Create Session</a>
+          </div>
+          <p class="card-text" th:text="'Code: '+${event.eventCode}"></p>
 
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
+          <p th:if="${event.eventStatus=='Inactive with future session'}" class="card-text" th:text="'Event Starts: '+${event.nextSeshdate}"></p>
+          <div th:if="${event.eventStatus=='Active'}">
+            <a th:if="${event.userRole=='Host'}" th:href="@{'/session'(eventid=${event.eventId},sessionid=${event.nextSeshid})}" class="btn btn-success" >Join Session as host</a>
+            <a th:if="${event.userRole=='Attendee'}" th:href="@{'/feedback'(eventid=${event.eventId},sessionid=${event.nextSeshid})}" class="btn btn-success" >Join Session as attendee</a>
+          </div>
+          <div th:if="${event.eventStatus=='Inactive without future session'}">
+            <p th:if="${event.userRole=='Attendee'}" class="card-text">No planned session for this event.</p>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
-    <div class="card">
-      <h5 class="card-header">Event A</h5>
-      <div class="card-body">
-        <h5 class="card-title">Host: </h5>
-        <p class="card-text">Code: </p>
-        <a href="#" class="btn btn-success">Join Session</a>
-      </div>
-    </div>
+    </th:block>
   </div>
 
   
