@@ -398,6 +398,14 @@ CREATE OR REPLACE FUNCTION end_event(eID INTEGER)
     WHERE EventID = eID;
     $$;
 
+
+CREATE OR REPLACE FUNCTION get_username(usrid INTEGER)
+    RETURNS VARCHAR
+    LANGUAGE SQL AS
+    $$
+    SELECT username FROM users WHERE userID = usrid ;
+    $$;
+
 CREATE OR REPLACE FUNCTION end_session(seID INTEGER)
     RETURNS void
     LANGUAGE SQL AS

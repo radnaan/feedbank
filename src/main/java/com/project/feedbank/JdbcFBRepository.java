@@ -34,7 +34,10 @@ public class JdbcFBRepository {
         int userId = jdbcCall.executeFunction(Integer.class, username, password);
         return userId;
     }
-
+    public String getUserName(int uid) {
+        SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withFunctionName("get_username");
+        String username = jdbcCall.executeFunction(String.class, uid);
+        return username;    }
     public int createUser(String fname, String lname, String username, String password) {
 
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withFunctionName("create_user");
@@ -61,6 +64,7 @@ public class JdbcFBRepository {
     public String createSession(int eventid , int tempid ,String shname ,Date shstartdate,Date shenddate ) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withFunctionName("create_session");
         jdbcCall.executeFunction(void.class, eventid ,  tempid , shname , shstartdate, shenddate);
+        System.out.println("Session created");
         return "";
 
     }
@@ -167,13 +171,14 @@ public class JdbcFBRepository {
             }
     }
         return sesh;*/
-        return (SessionInfo)jdbcTemplate.query(
+        ArrayList<SessionInfo> list = (ArrayList<SessionInfo>)jdbcTemplate.query(
             "SELECT * FROM get_session_info("+evid+","+sshid+")",
             (results, rowNum) ->
                     new SessionInfo( results.getString(1),results.getString(2) ,
                     results.getString(3),results.getTimestamp(4), results.getInt(5)
 
                     ));
+        return list.get(0);
     }
     
     public List<Event> getEvents(int userId){
@@ -245,4 +250,6 @@ public class JdbcFBRepository {
         S.close();
         return password.toString();
         }
+
+
 }

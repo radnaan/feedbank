@@ -43,7 +43,9 @@ public class MainController {
 		model.addAttribute("sessionInfo",sessionInfo);
 		ArrayList<Questions> questions = db.getQuestions(sessionInfo.templateId);
 		model.addAttribute("questions",questions);
-
+		model.addAttribute("sessionid",sessionid);
+		model.addAttribute("uname", db.getUserName( (int)httpSession.getAttribute("user")));
+		
 		return "feedback";
 	}
 
@@ -54,6 +56,8 @@ public class MainController {
 		}
 		SessionInfo sessionInfo = db.getSessionInfo(eventid,sessionid);
 		model.addAttribute("sessionInfo",sessionInfo);
+		model.addAttribute("sessionid",sessionid);
+		model.addAttribute("uname", "U"+httpSession.getAttribute("user"));
 		return "session";
 	}
 	@GetMapping("/sessioncreate")
@@ -86,7 +90,6 @@ public class MainController {
 		} 
 
 		model.addAttribute("eventid",eventid);
-		//computeEvents(httpSession);
 
 		return  "redirect:events";
 	}
@@ -117,7 +120,6 @@ public class MainController {
 			return "redirect:login";
 		}
 		db.createEvent((int)httpSession.getAttribute("user"), eventname, tempid, allowanon);
-		computeEvents(httpSession);
 
 		return "redirect:events";
 	}
@@ -163,9 +165,6 @@ public class MainController {
 	@PostMapping("/join")
 	public String joinEvent(HttpSession httpSession,@RequestParam("code") String code,@RequestParam(value ="anonymous",defaultValue = "false") boolean allowanon) {
 		int validCode = db.joinEvent(code,(int)httpSession.getAttribute("user"));
-		if(validCode!=-1){
-			computeEvents(httpSession);
-		}
 		return "redirect:events";
 	}
 	
@@ -176,11 +175,7 @@ public class MainController {
 		return "join";
 	}
 
-	//expensive function
-	public void computeEvents(HttpSession httpSession){
-		//ArrayList<Event> events = db.getEvents((int) httpSession.getAttribute("user"));
-		//httpSession.setAttribute("events", events);
-	}
+
 
 	@GetMapping("/events")
 	public String eventsLanding(HttpSession httpSession, Model model) {
@@ -208,7 +203,6 @@ public class MainController {
 		int userId = db.validateCredentials(username,password);
 		if(userId!=-1){
 			httpSession.setAttribute("user", userId);
-			computeEvents(httpSession);
 			return "redirect:events";
 		}
 		return "login";
@@ -232,7 +226,6 @@ public class MainController {
 			int userId = db.createUser(fname,lname,username, password);
 			httpSession.setAttribute("user", userId);
 			System.out.println("Created user "+username);
-			computeEvents(httpSession);
 			return "redirect:events";
 		}
 		return "redirect:/signup";

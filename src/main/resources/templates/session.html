@@ -16,6 +16,8 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+    <hidden id="username" th:value="${uname}"></hidden>
+    <hidden id="sessionid" th:value="${sessionid}"></hidden>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item active">
@@ -43,35 +45,132 @@
 
       <h1 th:text="'Event '+${sessionInfo.eventName} + ' | Session ' +${sessionInfo.sessionName}"></h1>
       <hr>
-      <h3> Audience Mood: </h3>
+      <h2 id="mood_output">  </h2>
+
+      <h3 th:text="'Event Code: ' + ${sessionInfo.eventCode} "> Audience Mood: </h3>
       <h5 th:text="'Event Ends: ' + ${sessionInfo.sessionEndDate} "></h5>
 
-
-      <div class="overflow-auto p-3 mb-3 mb-md-0 mr-md-3 bg-light" style="max-width: 100%; max-height: 800px;">
-        <div class="row">
-          <div class="col-1">
-
-          </div>
-          <div class="col">
-            <div class="card w-175">
-              <h5 class="card-header">Jojo 15:39</h5>
-              <div class="card-body">
-                <h5 class="card-title">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua?: </h5>
-                <p class="card-text">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
-                <a href="#" class="btn btn-secondary">Mark read</a>
+      
+      <div id="feedbackbox" class="overflow-auto p-3 mb-3 mb-md-0 mr-md-3 bg-light" style="max-width: 100%; max-height: 800px;">
+        <div id="responseTemplate" class="hidden">
+          <div class="row">
+            <div class="col-1">
+            </div>
+            <div class="col">
+                <div class="card w-175">
+                  <h5 class="card-header">Jojo 15:39</h5>
+                  <div class="card-body">
+                    <h5 class="card-title">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua?: </h5>
+                    <p class="card-text">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
         </div>
 
 
       </div>
       <input type="submit"  value="End Session">
 
+      <div class="waiting">
+        We are waiting to enter the session.
+      </div>
   </div>
 
 
 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script></body>
-</html>
+
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.3.0/sockjs.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>	
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+  <script>
+    'use strict';
+
+
+var stompClient = null;
+var session = $('#sessionid');
+var name = document.getElementById("username").getAttribute("value").trim();
+var waiting = document.querySelector('.waiting');
+var stompClient = null;
+var currentSubscription;
+var topic = null;
+var username;
+
+var mood_output = null;
+var mood_array = Array();
+var mood = 50;
+
+function onConnected() {
+  enterSession(document.getElementById("sessionid").getAttribute("value"));
+  waiting.classList.add('d-none');
+
+}
+
+function onError(error) {
+  waiting.textContent = 'Something went wrong!';
+}
+
+function enterSession(newsessionId) {
+  var sessionId = newsessionId;
+  Cookies.set('sessionId', session);
+  topic = `/session-app/session/${newsessionId}`;
+
+  currentSubscription = stompClient.subscribe(`/live-session/${sessionId}`, onMessageReceived);
+  var username = document.getElementById("username").getAttribute("value").trim();
+  stompClient.send(`${topic}/addUser`,
+    {},
+    JSON.stringify({sender: username, type: 'JOIN'})
+  );
+}
+function onMessageReceived(payload) {
+    var message = JSON.parse(payload.body);
+    if(message.type == "QUESTION"){
+      if(message.content == null){
+        return;
+      }
+      var box = document.getElementById("feedbackbox");
+      var toClone =  document.getElementById("responseTemplate");
+      var clone = toClone.cloneNode(true);
+      clone.id="";
+      clone.querySelector(".card-text").innerHTML = message.content;
+      clone.querySelector(".card-title").innerHTML = message.question;
+      clone.querySelector(".card-header").innerHTML = message.sender;
+
+      clone.setAttribute('class','');
+
+      box.appendChild(clone);
+    }else if(message.type == "MOOD"){
+      console.log(mood)
+      mood = ((mood*mood_array.length) +message.mood)/(mood_array.length+1);
+      mood_array.push(message.mood);
+      var mood_desc = "Excellent"
+      if(mood<20){
+        mood_desc = "Poor"
+      }else if(mood< 51){
+        mood_desc = "Okay"
+      }else if(mood < 85){
+        mood_desc  = "Good"
+      }
+      mood_output.innerHTML = "Audience Mood: "+Math.trunc(mood);
+    }
+
+}
+
+
+$(document).ready(function() {
+  mood_output = document.getElementById("mood_output");
+  mood_output.innerHTML= "Audience Mood: No data"
+  var name1 = document.getElementById("username").getAttribute("value").trim();
+  Cookies.set('name', name1);
+  var socket = new SockJS('/sock');
+  stompClient = Stomp.over(socket);
+  stompClient.connect({}, onConnected, onError);
+});
+  </script>
+  </html>

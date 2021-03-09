@@ -23,16 +23,22 @@
       <label id="mood">0</label>
 
       </br>
+      <hidden id="username" th:value="${uname}"></hidden>
+      <hidden id="sessionid" th:value="${sessionid}"></hidden>
 
-      <select class="custom-select">
-        <option selected>Select Question</option>
+      <select id="question" class="custom-select">
+        <option selected>Question</option>
         <th:block th:each="question : ${questions}">
           <option th:value="${question.question}" th:text="${question.question}"></option>
         </th:block>
 
-                <textarea  rows="3" placeholder="Enter response here" ></textarea>
+        <textarea  id="answer" rows="3" placeholder="Enter response here" ></textarea>
 
-      <input type="submit"  value="Submit response">
+      <input id="submitbtn" type="submit"  value="Submit response">
+
+    <div class="waiting">
+      We are waiting to enter the session.
+    </div>
 
     <div id="formFooter">
       <a class="underlineHover" th:href="@{/events}">Return to Menu</a>
@@ -59,9 +65,107 @@ var val = document.getElementById("fbslider").value;
       }
       document.getElementById("mood").innerHTML=mood;
       document.getElementById("img").src = "moods/eh.png";
+      sendMood();
     }
 </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script></body>
-</html>
+
+
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.3.0/sockjs.js"></script>	
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>	
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+  <script>
+    'use strict';
+
+
+var stompClient = null;
+var session = $('#sessionid');
+var name = document.getElementById("username").getAttribute("value").trim();
+var waiting = document.querySelector('.waiting');
+var stompClient = null;
+var currentSubscription;
+var topic = null;
+var username;
+
+function onConnected() {
+  enterSession(document.getElementById("sessionid").getAttribute("value"));
+  waiting.classList.add('d-none');
+
+}
+
+function onError(error) {
+  waiting.textContent = 'Something went wrong!';
+}
+
+function enterSession(newsessionId) {
+  var sessionId = newsessionId;
+  Cookies.set('sessionId', session);
+  topic = `/session-app/session/${newsessionId}`;
+
+  //currentSubscription = stompClient.subscribe(`/live-session/${sessionId}`, onMessageReceived);
+  var username = document.getElementById("username").getAttribute("value").trim();
+  stompClient.send(`${topic}/addUser`,
+    {},
+    JSON.stringify({sender: username, type: 'JOIN'})
+  );
+}
+
+//function onMessageReceived(payload) {
+//}
+
+function sendMessage(event) {
+    var question = $("#question").val().trim();
+    var answer = $("#answer").val().trim();
+    var messageContent = answer;
+    var username = document.getElementById("username").getAttribute("value").trim();
+    var newsessionId =document.getElementById("sessionid").getAttribute("value").trim();
+    topic = `/session-app/session/${newsessionId}`;
+    if(messageContent && stompClient) {
+        var Message = {
+            sender: username,
+            question:question,
+            content: messageContent,
+            type: 'QUESTION'
+        };
+
+        stompClient.send(`${topic}/sendMessage`, {}, JSON.stringify(Message));
+        document.querySelector('#answer').value = '';
+    }
+    event.preventDefault();
+}
+
+function sendMood() {
+    var moodVal = document.getElementById("fbslider").value;
+    var username = document.getElementById("username").getAttribute("value").trim();
+    var newsessionId =document.getElementById("sessionid").getAttribute("value").trim();
+    topic = `/session-app/session/${newsessionId}`;
+    if(stompClient) {
+        var Message = {
+            sender: username,
+            mood:moodVal,
+            type: 'MOOD'
+        };
+
+        stompClient.send(`${topic}/sendMessage`, {}, JSON.stringify(Message));
+        document.querySelector('#answer').value = '';
+    }
+    event.preventDefault();
+}
+
+$(document).ready(function() {
+  var name1 = document.getElementById("username").getAttribute("value").trim();
+  Cookies.set('name', name1);
+  var socket = new SockJS('/sock');
+  stompClient = Stomp.over(socket);
+  stompClient.connect({}, onConnected, onError);
+
+  document.getElementById('submitbtn').addEventListener('click', sendMessage, true);
+});
+  </script>
+  </html>
