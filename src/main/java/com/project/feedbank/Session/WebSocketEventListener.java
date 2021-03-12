@@ -1,6 +1,9 @@
-package com.project.feedbank;
+package com.project.feedbank.Session;
 
 import static java.lang.String.format;
+
+import com.project.feedbank.Semantic.Mood;
+import com.project.feedbank.Semantic.SemanticAnalyser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +33,16 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
         String username = (String) headerAccessor.getSessionAttributes().get("username");
-        String roomId = (String) headerAccessor.getSessionAttributes().get("session_id");
+        String sessionId = (String) headerAccessor.getSessionAttributes().get("session_id");
         if (username != null) {
             logger.info("User Disconnected: " + username);
 
-            Message chatMessage = new Message();
-            chatMessage.setSender(username);
+            Message feedbackMessage = new Message();
+            
+            feedbackMessage.setSender(username);
 
-            messagingTemplate.convertAndSend(format("/channel/%s", roomId), chatMessage);
+
+            messagingTemplate.convertAndSend(format("/channel/%s", sessionId), feedbackMessage);
         }
     }
 }

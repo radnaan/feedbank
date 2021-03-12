@@ -1,4 +1,4 @@
-package com.project.feedbank;
+package com.project.feedbank.DBEntities;
 
 public class Questions {
     public int questionsid;

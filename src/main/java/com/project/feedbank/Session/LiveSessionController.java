@@ -1,4 +1,4 @@
-package com.project.feedbank;
+package com.project.feedbank.Session;
 
 
 import org.slf4j.Logger;
@@ -14,6 +14,8 @@ import org.springframework.stereotype.Controller;
 
 import static java.lang.String.format;
 
+import com.project.feedbank.Semantic.*;
+
 @Controller
 public class LiveSessionController {
 
@@ -22,6 +24,8 @@ public class LiveSessionController {
 
     @MessageMapping("/session/{sessionId}/sendMessage")
     public void sendMessage(@DestinationVariable String sessionId, @Payload Message sessionMessage) {
+        Mood mood = SemanticAnalyser.getClassification(sessionMessage.getContent());
+        sessionMessage.setClassification(mood.getClassification());
         messagingTemplate.convertAndSend(format("/live-session/%s", sessionId), sessionMessage);
     }
 

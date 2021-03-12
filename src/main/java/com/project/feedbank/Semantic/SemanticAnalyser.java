@@ -1,3 +1,6 @@
+package com.project.feedbank.Semantic;
+
+
 import java.net.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -7,7 +10,7 @@ import java.util.regex.Pattern;
 //Code from here https://www.baeldung.com/java-http-request
 //Compile with java Semantic.java -classpath . *.java
 
-class SemanticAnalyser {
+public class SemanticAnalyser {
     //Will need to change so that it works for the final distribution
     private final static String requestUrl = "http://localhost:5000/analyse?text=";
 
@@ -19,7 +22,7 @@ class SemanticAnalyser {
         StringBuffer requestData = makeRequest(feedback);
         String result = getMoodFromJSON(requestData.toString());
         String[] requests = getRequestsFromJSON(requestData.toString());
-
+        
         classification.setClassification(result);
         classification.setRequests(requests);
         

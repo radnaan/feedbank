@@ -437,3 +437,5 @@ CREATE OR REPLACE FUNCTION get_questions(tempID INTEGER)
     FROM questions
     WHERE TemplateID = tempID;
     $$;
+
+SELECT * FROM create_default_template('Default Template',array['']::varchar[],array['Text']::varchar[],array['']::varchar[]);

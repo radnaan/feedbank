@@ -58,10 +58,15 @@
           </div>
           <p class="card-text" th:text="'Code: '+${event.eventCode}"></p>
 
-          <p th:if="${event.eventStatus=='Inactive with future session'}" class="card-text" th:text="'Event Starts: '+${event.nextSeshdate}"></p>
+          <p th:if="${event.eventStatus=='Inactive with future session'}" class="card-text" th:text="'Session Starts: '+${event.nextSeshdate}"></p>
           <div th:if="${event.eventStatus=='Active'}">
             <a th:if="${event.userRole=='Host'}" th:href="@{'/session'(eventid=${event.eventId},sessionid=${event.nextSeshid})}" class="btn btn-success" >Join Session as host</a>
-            <a th:if="${event.userRole=='Attendee'}" th:href="@{'/feedback'(eventid=${event.eventId},sessionid=${event.nextSeshid})}" class="btn btn-success" >Join Session as attendee</a>
+            <div th:if="${event.userRole=='Attendee'}">
+            <a th:if="${event.allowAnon==true}" th:href="@{'/feedback'(eventid=${event.eventId},sessionid=${event.nextSeshid},a=true)}" class="btn btn-success" >Join session as anonymous attendee</a>
+            <a th:if="${anonymous=='false'}" th:href="@{'/feedback'(eventid=${event.eventId},sessionid=${event.nextSeshid})}" class="btn btn-success" >Join session as attendee</a>
+            <p th:if="${anonymous=='true'}"   >This event is not available for anonymous users</p>
+
+          </div>
           </div>
           <div th:if="${event.eventStatus=='Inactive without future session'}">
             <p th:if="${event.userRole=='Attendee'}" class="card-text">No planned session for this event.</p>

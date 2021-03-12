@@ -1,4 +1,4 @@
-package com.project.feedbank;
+package com.project.feedbank.DBEntities;
 
 import java.io.Serializable;
 

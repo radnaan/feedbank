@@ -22,6 +22,8 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
+import com.project.feedbank.DBEntities.*;
+
 @Repository
 public class JdbcFBRepository {
 

@@ -18,7 +18,6 @@
       <label > Create Session </label>
       <input type="text" id="sessionname"  name="sessionname" placeholder="Session name">
       <select class="custom-select" name="templateid">
-        <option selected>Select Template</option>
         <th:block th:each="template : ${templates}">
           <option th:value="${template.templateid}" th:text="${template.templatename}"></option>
         </th:block>

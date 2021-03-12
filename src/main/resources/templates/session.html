@@ -48,7 +48,7 @@
       <h2 id="mood_output">  </h2>
 
       <h3 th:text="'Event Code: ' + ${sessionInfo.eventCode} "> Audience Mood: </h3>
-      <h5 th:text="'Event Ends: ' + ${sessionInfo.sessionEndDate} "></h5>
+      <h5 th:text="'Session Ends: ' + ${sessionInfo.sessionEndDate} "></h5>
 
       
       <div id="feedbackbox" class="overflow-auto p-3 mb-3 mb-md-0 mr-md-3 bg-light" style="max-width: 100%; max-height: 800px;">
@@ -63,6 +63,8 @@
                     <h5 class="card-title">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua?: </h5>
                     <p class="card-text">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
                   </div>
+                  <div class="card-footer bg-transparent ">Mood: </div>
+
                 </div>
               </div>
             </div>
@@ -70,7 +72,7 @@
 
 
       </div>
-      <input type="submit"  value="End Session">
+      <!-- <input type="submit"  value="End Session">-->
 
       <div class="waiting">
         We are waiting to enter the session.
@@ -101,6 +103,8 @@ var stompClient = null;
 var currentSubscription;
 var topic = null;
 var username;
+
+var classifcation_values = {"negative":20,"neutral":50,"unclassified":50,"positive":80}
 
 var mood_output = null;
 var mood_array = Array();
@@ -137,18 +141,25 @@ function onMessageReceived(payload) {
       var box = document.getElementById("feedbackbox");
       var toClone =  document.getElementById("responseTemplate");
       var clone = toClone.cloneNode(true);
+      console.log(message.classification);
       clone.id="";
       clone.querySelector(".card-text").innerHTML = message.content;
       clone.querySelector(".card-title").innerHTML = message.question;
       clone.querySelector(".card-header").innerHTML = message.sender;
-
+      clone.querySelector(".card-footer").innerHTML = "Mood: "+message.classification;
+      updateAudienceMood(classifcation_values[message.classification]);
       clone.setAttribute('class','');
 
       box.appendChild(clone);
     }else if(message.type == "MOOD"){
-      console.log(mood)
-      mood = ((mood*mood_array.length) +message.mood)/(mood_array.length+1);
-      mood_array.push(message.mood);
+        updateAudienceMood(message.mood);
+    }
+
+}
+
+function updateAudienceMood(value){
+      mood = ((mood*mood_array.length) +value)/(mood_array.length+1);
+      mood_array.push(value);
       var mood_desc = "Excellent"
       if(mood<20){
         mood_desc = "Poor"
@@ -157,11 +168,8 @@ function onMessageReceived(payload) {
       }else if(mood < 85){
         mood_desc  = "Good"
       }
-      mood_output.innerHTML = "Audience Mood: "+Math.trunc(mood);
-    }
-
+      mood_output.innerHTML = "Audience Mood: "+Math.trunc(mood) + " | "+mood_desc;
 }
-
 
 $(document).ready(function() {
   mood_output = document.getElementById("mood_output");

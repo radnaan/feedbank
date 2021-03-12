@@ -1,3 +1,5 @@
+package com.project.feedbank.Semantic;
+
 public class Mood {
     public static final byte NEGATIVE = 0;
     public static final byte NEUTRAL = 1;
@@ -72,5 +74,9 @@ public class Mood {
 
     public String toString() {
         return "Mood: " + classification;
+    }
+
+    public String getClassification() {
+        return classification;
     }
 }

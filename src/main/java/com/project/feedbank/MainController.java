@@ -5,7 +5,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
@@ -14,14 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import ch.qos.logback.core.boolex.EventEvaluator;
+import com.project.feedbank.DBEntities.*;
+import com.project.feedbank.Semantic.*;
 
 @Controller
-public class MainController {
+public class MainController  {
 
 	@Autowired
 	private JdbcFBRepository db;
@@ -35,7 +34,8 @@ public class MainController {
 	}
 
 	@GetMapping("/feedback")
-	public String attendeeSession(HttpSession httpSession,Model model,@RequestParam("eventid") int eventid,@RequestParam("sessionid") int sessionid) {
+	public String attendeeSession(HttpSession httpSession,Model model,@RequestParam("eventid") int eventid,
+	@RequestParam("sessionid") int sessionid,@RequestParam(value ="a",defaultValue = "false") boolean anon) {
 		if(!loggedin(httpSession)){
 			return "redirect:login";
 		}
@@ -44,8 +44,14 @@ public class MainController {
 		ArrayList<Questions> questions = db.getQuestions(sessionInfo.templateId);
 		model.addAttribute("questions",questions);
 		model.addAttribute("sessionid",sessionid);
-		model.addAttribute("uname", db.getUserName( (int)httpSession.getAttribute("user")));
-		
+		System.out.println("dio"+anon);
+		if(anon==false){
+			model.addAttribute("uname", db.getUserName( (int)httpSession.getAttribute("user")));
+		}else{
+			System.out.println("we livin.");
+			model.addAttribute("uname", "anonymous");
+
+		}
 		return "feedback";
 	}
 
@@ -163,30 +169,25 @@ public class MainController {
 	}
 
 	@PostMapping("/join")
-	public String joinEvent(HttpSession httpSession,@RequestParam("code") String code,@RequestParam(value ="anonymous",defaultValue = "false") boolean allowanon) {
+	public String joinEvent(HttpSession httpSession,@RequestParam("code") String code) {
 		int validCode = db.joinEvent(code,(int)httpSession.getAttribute("user"));
 		return "redirect:events";
 	}
-	
-	
-	@GetMapping("/QRJoin")
-	public String QRJoin(@RequestParam("code") String qrcode) {
-			
-		return "join";
-	}
-
-
-
 	@GetMapping("/events")
 	public String eventsLanding(HttpSession httpSession, Model model) {
 		if(!loggedin(httpSession)){
 			return "redirect:login";
 		}
-		//ArrayList<Event> events = (ArrayList<Event>) httpSession.getAttribute("events");
 		ArrayList<Event> events = (ArrayList<Event>) db.getEvents((int) httpSession.getAttribute("user"));
 		model.addAttribute("events", events);
-	
 		model.addAttribute("event_num", events.size());
+		if(httpSession.getAttribute("anonymous")==null){
+			model.addAttribute("anonymous", "false");
+		}else{
+			System.out.println("User is anonymous");
+			model.addAttribute("anonymous", "true");
+
+		}
 		return "events";
 	}
 	@GetMapping("/login")
@@ -242,7 +243,7 @@ public class MainController {
 	@GetMapping("/anonymous_account")
 	public String anonymous_account(HttpSession httpSession) {
 		httpSession.setAttribute("anonymous","true");
-		return register("","","anonymousQZX!","password","password",httpSession);
+		return register("","","anonymous","password","password",httpSession);
 	}
 
 }

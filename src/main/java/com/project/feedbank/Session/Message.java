@@ -1,4 +1,4 @@
-package com.project.feedbank;
+package com.project.feedbank.Session;
 
 public class Message {	
     public enum MessageType {QUESTION, 
@@ -10,7 +10,7 @@ public class Message {
     private String sender;	
     private String question;
     private int mood;
-
+    private String classification;
     public MessageType getType() 
     {	        
         return messageType;	    
@@ -47,8 +47,17 @@ public class Message {
     {	        
         return mood;	    
     }	
-    public void seMood(int mood) 
+    public void setMood(int mood) 
     {	        
         this.mood = mood;	    
+    }	
+
+    public String getClassification() 
+    {	        
+        return classification;	    
+    }	
+    public void setClassification(String classification) 
+    {	        
+        this.classification = classification;	    
     }	
 }
