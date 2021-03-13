@@ -44,11 +44,9 @@ public class MainController  {
 		ArrayList<Questions> questions = db.getQuestions(sessionInfo.templateId);
 		model.addAttribute("questions",questions);
 		model.addAttribute("sessionid",sessionid);
-		System.out.println("dio"+anon);
 		if(anon==false){
 			model.addAttribute("uname", db.getUserName( (int)httpSession.getAttribute("user")));
 		}else{
-			System.out.println("we livin.");
 			model.addAttribute("uname", "anonymous");
 
 		}
@@ -184,7 +182,6 @@ public class MainController  {
 		if(httpSession.getAttribute("anonymous")==null){
 			model.addAttribute("anonymous", "false");
 		}else{
-			System.out.println("User is anonymous");
 			model.addAttribute("anonymous", "true");
 
 		}
@@ -226,7 +223,6 @@ public class MainController  {
 		if(password.equals(password2)){
 			int userId = db.createUser(fname,lname,username, password);
 			httpSession.setAttribute("user", userId);
-			System.out.println("Created user "+username);
 			return "redirect:events";
 		}
 		return "redirect:/signup";

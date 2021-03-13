@@ -7,6 +7,9 @@
 
   <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="./forms.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
 </head>
 <body>
 <div class="wrapper">
@@ -14,17 +17,19 @@
     <div id="formHeader">
       <img src="./logo.png" id="logo" alt="logo" />
     </div>
-    <form th:action="@{/signup}" method="post">
+    <form  th:action="@{/signup}" method="post" onsubmit="return validateSignup()">
     <label > Create Account </label>
       <div class="login">
-      <input type="text" id="fname"  name="firstname" placeholder="First Name">
-      <input type="text" id="lname"  name="lastname" placeholder="Last Name">
+      <input type="text" id="firstname"  name="firstname" placeholder="First Name">
+      <input type="text" id="lastname"  name="lastname" placeholder="Last Name">
       <input type="text" id="username"  name="username" placeholder="Username">
       <input type="password" id="password"  name="password" placeholder="Password">
       <input type="password" id="password2"  name="password2" placeholder="Repeat Password">
       </div>
       <input type="submit"  value="Signup">
     </form>
+    <p class="text-danger" id="formerror"></p>
+
 
     <div id="formFooter">
       <a class="underlineHover" th:href="@{/login}">Already have an account? Login</a>
@@ -37,4 +42,44 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script></body>
-</html>
+
+<script>
+var error_msg;
+
+var password_obj;
+var rpt_password_obj;
+var forms;
+
+function validateSignup(){
+  for(var i =0 ;i< forms.length; i++){
+    if(forms[i].value == ""){
+      error_msg.innerHTML = "Error, all fields must be filled";
+      return false;
+    }
+  }
+  if(password_obj.value != rpt_password_obj.value){
+    error_msg.innerHTML = "Error, passwords do not match";
+    return false;
+  }
+
+  return true;
+}
+$(document).ready(function (){
+  error_msg = document.getElementById("formerror");
+
+  password_obj = document.getElementById('password');
+  rpt_password_obj = document.getElementById('password2');
+  var fname_obj = document.getElementById('firstname');
+  var uname_obj = document.getElementById('username');
+
+  var lname_obj = document.getElementById('lastname');
+
+  forms = [ password_obj, rpt_password_obj,uname_obj, fname_obj, lname_obj ];
+
+  error_msg.innerHTML = "";
+
+});
+</script>
+
+</script>
+  </html>

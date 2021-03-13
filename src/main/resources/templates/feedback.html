@@ -105,7 +105,6 @@ function onError(error) {
 
 function enterSession(newsessionId) {
   var sessionId = newsessionId;
-  Cookies.set('sessionId', session);
   topic = `/session-app/session/${newsessionId}`;
 
   //currentSubscription = stompClient.subscribe(`/live-session/${sessionId}`, onMessageReceived);
@@ -115,9 +114,6 @@ function enterSession(newsessionId) {
     JSON.stringify({sender: username, type: 'JOIN'})
   );
 }
-
-//function onMessageReceived(payload) {
-//}
 
 function sendMessage(event) {
     var question = $("#question").val().trim();
@@ -160,7 +156,6 @@ function sendMood() {
 
 $(document).ready(function() {
   var name1 = document.getElementById("username").getAttribute("value").trim();
-  Cookies.set('name', name1);
   var socket = new SockJS('/sock');
   stompClient = Stomp.over(socket);
   stompClient.connect({}, onConnected, onError);
