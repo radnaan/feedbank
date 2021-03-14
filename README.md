@@ -2,7 +2,9 @@
 CS261 Group project
 
 ##Installation
-Install Postgres 12 onto your device. 
+Install Postgres 12 onto your device with pgadmin for ease of use.
+
+Windows installer: https://www.postgresql.org/download/windows/
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the following libraries.
 
@@ -20,7 +22,7 @@ nltk.download('punkt')
 
 Ensure atleast java version 8 is installed.
 
-Start the Postgres server by opening pgAdmn4 and run the following query:
+Start the Postgres server by opening pgAdmin. Ensure that PostgresSql->Properties>Connection has port number set to. 5432 and run the following query:
 
 ```SQL
 CREATE DATABASE springfeedbank;
