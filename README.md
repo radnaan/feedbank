@@ -28,9 +28,9 @@ CREATE DATABASE feedbank;
 
 Copy the database Schema in src\main\resources\static\schema.sql into the pgAdmin4 query editor and run it.
 
-Start the spring server on local host by running the follow command:
+Start the spring server on local host by running the executable jar feedbank.jar:
  ```bash
-java -jar target/feedbank-0.0.1-SNAPSHOT.jar
+java -jar feedbank.jar
 ```
 
 The URL http://localhost:8080/login will take you to the site login portal. Note that due to the way http sessions work,
