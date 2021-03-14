@@ -1,3 +1,6 @@
+/*
+Table storing user data
+*/
 DROP TABLE users CASCADE;
 CREATE TABLE users (
     UserID          SERIAL,
@@ -8,6 +11,9 @@ CREATE TABLE users (
     PRIMARY KEY (UserID)
 );
 
+/*
+Table storing data about templates
+*/
 DROP TABLE templates CASCADE;
 CREATE TABLE templates (
     TemplateID      SERIAL,
@@ -16,7 +22,9 @@ CREATE TABLE templates (
     PRIMARY KEY (TemplateID)
 );
 
---changed feedbacktime to integer
+/*
+Table storing event data
+*/
 DROP TABLE events CASCADE;
 CREATE TABLE events (
     EventID         SERIAL,
@@ -31,6 +39,9 @@ CREATE TABLE events (
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
 );
 
+/*
+Table storing data about sessions
+*/
 DROP TABLE sesh CASCADE;
 CREATE TABLE sesh (
     SeshID          SERIAL,
@@ -45,6 +56,9 @@ CREATE TABLE sesh (
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
 );
 
+/*
+Table storing user feedback
+*/
 DROP TABLE feedback CASCADE;
 CREATE TABLE feedback (
     FeedbackID      SERIAL,
@@ -59,6 +73,9 @@ CREATE TABLE feedback (
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
 );
 
+/*
+Table storing questions in templates
+*/
 DROP TABLE questions CASCADE;
 CREATE TABLE questions (
     QuestionID      SERIAL,
@@ -69,6 +86,9 @@ CREATE TABLE questions (
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
 );
 
+/*
+Table storing answers from feedback
+*/
 DROP TABLE answers CASCADE;
 CREATE TABLE answers (
     AnswerID        SERIAL,
@@ -81,24 +101,9 @@ CREATE TABLE answers (
     FOREIGN KEY (FeedbackID) REFERENCES feedback(FeedbackID)  ON DELETE CASCADE
 );
 
-DROP TABLE choices_questions CASCADE;
-CREATE TABLE choices_questions (
-    ChoiceQuestionID        SERIAL,
-    QuestionID      INTEGER NOT NULL,
-    ChoiceText      VARCHAR NOT NULL,
-    PRIMARY KEY (ChoiceQuestionID),
-    FOREIGN KEY (QuestionID) REFERENCES questions(QuestionID) ON DELETE CASCADE
-);
-
-DROP TABLE choices_answers CASCADE;
-CREATE TABLE choices_answers (
-    ChoiceAnswerID        SERIAL,
-    AnswerID        INTEGER NOT NULL,
-    ChoiceText      VARCHAR NOT NULL,
-    PRIMARY KEY (ChoiceAnswerID),
-    FOREIGN KEY (AnswerID) REFERENCES answers(AnswerID) ON DELETE CASCADE
-);
-
+/*
+Table storing which which users templates are assigned to
+*/
 DROP TABLE user_templates CASCADE;
 CREATE TABLE user_templates (
     UserID          INTEGER NOT NULL,
@@ -108,6 +113,9 @@ CREATE TABLE user_templates (
     FOREIGN KEY (TemplateID) REFERENCES templates(TemplateID) ON DELETE CASCADE
 );
 
+/*
+Table storing which which events users are part of
+*/
 DROP TABLE user_events CASCADE;
 CREATE TABLE user_events (
     UserID          INTEGER NOT NULL,
@@ -118,7 +126,9 @@ CREATE TABLE user_events (
     FOREIGN KEY (EventID) REFERENCES events(EventID) ON DELETE CASCADE
 );
 
---changed feedbacktime to integer
+/*
+Function used to create an event
+*/
 CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templateID INTEGER, requiredLogin BOOLEAN, feedbackTime INTEGER, allowAnon BOOLEAN, userID INTEGER)
     RETURNS void
     LANGUAGE plpgsql AS
@@ -136,7 +146,10 @@ CREATE OR REPLACE FUNCTION create_event(eventName VARCHAR, code VARCHAR, templat
         VALUES (userID, ID, 'Host');
     END
     $$;
---changed return type from void to integer
+
+/*
+Function used to create a new user
+*/
 CREATE OR REPLACE FUNCTION create_user(firstName VARCHAR, lastName VARCHAR, userName VARCHAR, userPassword VARCHAR)
     RETURNS INTEGER
     LANGUAGE plpgsql AS
@@ -156,7 +169,9 @@ CREATE OR REPLACE FUNCTION create_user(firstName VARCHAR, lastName VARCHAR, user
     END
     $$;
 
-
+/*
+Function used to get the eventID based on the code
+*/
 CREATE OR REPLACE FUNCTION validate_code(code VARCHAR)
     RETURNS INTEGER
     LANGUAGE plpgsql AS
@@ -169,7 +184,9 @@ CREATE OR REPLACE FUNCTION validate_code(code VARCHAR)
     END
     $$;
 
---new login validator function
+/*
+Function used to validate logins
+*/
 CREATE OR REPLACE FUNCTION validate_login(usrname VARCHAR, psswrd VARCHAR)
     RETURNS INTEGER
     LANGUAGE plpgsql AS
@@ -187,7 +204,9 @@ CREATE OR REPLACE FUNCTION validate_login(usrname VARCHAR, psswrd VARCHAR)
     END
     $$;
 
-
+/*
+Function used to assign a user to an event, which occurs when a user joins an event or creates one
+*/
 CREATE OR REPLACE FUNCTION assign_user(usID INTEGER, evID INTEGER)
     RETURNS void
     LANGUAGE SQL AS
@@ -196,6 +215,9 @@ CREATE OR REPLACE FUNCTION assign_user(usID INTEGER, evID INTEGER)
     VALUES (usID, evID, 'Attendee');
     $$;
 
+/*
+Function used to create a session for an event
+*/
 CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName VARCHAR, shStartDate TIMESTAMP, shEndDate TIMESTAMP)
     RETURNS void
     LANGUAGE SQL AS
@@ -204,6 +226,9 @@ CREATE OR REPLACE FUNCTION create_session(evID INTEGER, tempID INTEGER, shName V
     VALUES (evID, tempID, shName, FALSE, shStartDate, shEndDate);
     $$;
 
+/*
+Function used to create a template by a user
+*/
 CREATE OR REPLACE FUNCTION create_template(userID INTEGER, tempName VARCHAR, questions VARCHAR[], types VARCHAR[], choices VARCHAR[][])
     RETURNS void
     LANGUAGE plpgsql AS
@@ -224,20 +249,13 @@ CREATE OR REPLACE FUNCTION create_template(userID INTEGER, tempName VARCHAR, que
         FOR i IN 1 .. array_upper(questions, 1) LOOP
             INSERT INTO questions (TemplateID, QuestionText, QuestionType)
             VALUES (ID, questions[i], types[i]);
-            
-            -- SELECT currval('questions_QuestionID_seq')
-            -- INTO questID;
-            
-            -- IF types[i] = 'Choice' THEN
-            --     FOR j IN 1 .. coalesce(array_upper(choices[i], 1), 0) LOOP
-            --     INSERT INTO choice_questions (QuestionID, ChoiceText)
-            --     VALUES (questID, choices[i][j]);
-            -- END LOOP;
-            -- END IF;
         END LOOP;
     END
     $$;
 
+/*
+Function used to create a template which will be accessible for all users
+*/
 CREATE OR REPLACE FUNCTION create_default_template(tempName VARCHAR, questions VARCHAR[], types VARCHAR[], choices VARCHAR[][])
     RETURNS void
     LANGUAGE plpgsql AS
@@ -258,20 +276,13 @@ CREATE OR REPLACE FUNCTION create_default_template(tempName VARCHAR, questions V
         FOR i IN 1 .. array_upper(questions, 1) LOOP
             INSERT INTO questions (TemplateID, QuestionText, QuestionType)
             VALUES (ID, questions[i], types[i]);
-            
-            -- SELECT currval('questions_QuestionID_seq')
-            -- INTO questID;
-            
-            -- IF types[i] = 'Choice' THEN
-            --     FOR j IN 1 .. coalesce(array_upper(choices[i], 1), 0) LOOP
-            --     INSERT INTO choice_questions (QuestionID, ChoiceText)
-            --     VALUES (questID, choices[i][j]);
-            -- END LOOP;
-            -- END IF;
         END LOOP;
     END
     $$;
 
+/*
+Function used to add user feedback
+*/
 CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID INTEGER, mood VARCHAR, datePlaced TIMESTAMP, questionIDs INTEGER[], answertxt VARCHAR[], answermoods VARCHAR[], choices VARCHAR[][])
     RETURNS void
     LANGUAGE plpgsql AS
@@ -289,20 +300,13 @@ CREATE OR REPLACE FUNCTION add_feedback(userID INTEGER, seshID INTEGER, tempID I
         FOR i IN 1 .. array_upper(questionIDs, 1) LOOP
             INSERT INTO answers (QuestionID, FeedbackID, AnswerText, AnswerMood)
             VALUES (questionIDs[i], ID, answertxt[i], answermoods[i]);
-            
-            -- SELECT currval('answers_AnswerID_seq')
-            -- INTO answID;
-            
-            -- IF types[i] = 'Choice' THEN
-            --     FOR j IN 1 .. coalesce(array_upper(choices[i], 1), 0) LOOP
-            --     INSERT INTO choice_questions (QuestionID, ChoiceText)
-            --     VALUES (questID, choices[i][j]);
-            -- END LOOP;
-            -- END IF;
         END LOOP;
     END
     $$;
 
+/*
+Function used to get all users belonging to an event
+*/
 CREATE OR REPLACE FUNCTION get_users(evID INTEGER)
     RETURNS TABLE
         (UserID INTEGER,
@@ -316,6 +320,9 @@ CREATE OR REPLACE FUNCTION get_users(evID INTEGER)
     WHERE UserRole = 'Attendee' AND EventID = evID;
     $$;
 
+/*
+Function used to get all events which a user is part of
+*/
 CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
     RETURNS TABLE
         (EventID INTEGER,
@@ -353,6 +360,9 @@ CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
     ) as NextSessions where rank = 1;
     $$;
 
+/*
+Function used to get details about a session
+*/
 CREATE OR REPLACE FUNCTION get_session_info( evid INTEGER,sshid INTEGER)
     RETURNS TABLE
         (EventName VARCHAR,
@@ -369,8 +379,9 @@ CREATE OR REPLACE FUNCTION get_session_info( evid INTEGER,sshid INTEGER)
 		WHERE Events.EventID= evid AND sesh.SeshID = sshid;
     $$;
 
-
-
+/*
+Function used to update the status of events based on whether they have a session currently running
+*/
 CREATE OR REPLACE FUNCTION update_activity()
     RETURNS void
     LANGUAGE SQL AS
@@ -390,6 +401,9 @@ CREATE OR REPLACE FUNCTION update_activity()
     );
     $$;
 
+/*
+Function used to end an event
+*/
 CREATE OR REPLACE FUNCTION end_event(eID INTEGER)
     RETURNS void
     LANGUAGE SQL AS
@@ -398,7 +412,9 @@ CREATE OR REPLACE FUNCTION end_event(eID INTEGER)
     WHERE EventID = eID;
     $$;
 
-
+/*
+Function used to get the username of a user based on their ID
+*/
 CREATE OR REPLACE FUNCTION get_username(usrid INTEGER)
     RETURNS VARCHAR
     LANGUAGE SQL AS
@@ -406,6 +422,9 @@ CREATE OR REPLACE FUNCTION get_username(usrid INTEGER)
     SELECT username FROM users WHERE userID = usrid ;
     $$;
 
+/*
+Function used to end a session
+*/
 CREATE OR REPLACE FUNCTION end_session(seID INTEGER)
     RETURNS void
     LANGUAGE SQL AS
@@ -414,6 +433,9 @@ CREATE OR REPLACE FUNCTION end_session(seID INTEGER)
     WHERE seshID = seID;
     $$;
 
+/*
+Function used to get templates belonging to a user
+*/
 CREATE OR REPLACE FUNCTION get_templates(usID INTEGER)
     RETURNS TABLE
         (TemplateID INTEGER,
@@ -426,6 +448,9 @@ CREATE OR REPLACE FUNCTION get_templates(usID INTEGER)
     WHERE UserID = usID;
     $$;
 
+/*
+Function used to get questions in a template
+*/
 CREATE OR REPLACE FUNCTION get_questions(tempID INTEGER)
     RETURNS TABLE
         (QuestionID INTEGER,
@@ -438,4 +463,7 @@ CREATE OR REPLACE FUNCTION get_questions(tempID INTEGER)
     WHERE TemplateID = tempID;
     $$;
 
+/*
+Creates a default template usable by all users
+*/
 SELECT * FROM create_default_template('Default Template',array['']::varchar[],array['Text']::varchar[],array['']::varchar[]);
