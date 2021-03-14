@@ -23,7 +23,7 @@ Ensure atleast java version 8 is installed.
 Start the Postgres server by opening pgAdmn4 and run the following query:
 
 ```SQL
-CREATE DATABASE feedbank;
+CREATE DATABASE springfeedbank;
 ```
 
 Copy the database Schema in src\main\resources\static\schema.sql into the pgAdmin4 query editor and run it.
