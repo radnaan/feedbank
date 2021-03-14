@@ -171,10 +171,12 @@ CREATE OR REPLACE FUNCTION validate_code(code VARCHAR)
         evid INTEGER; 
     BEGIN
         SELECT EventID FROM Events WHERE EventCode = code INTO evid;
+        IF evid IS NULL THEN
+			evid := -1;
+		END IF;
         RETURN evid;
     END
     $$;
-
 /*
 Function used to validate logins
 */
