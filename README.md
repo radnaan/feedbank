@@ -30,7 +30,7 @@ Copy the database Schema in src\main\resources\static\schema.sql into the pgAdmi
 
 Start the spring server on local host by running the follow command:
  ```bash
-java jar feedbank.jar
+java jar feedbank-0.0.1-SNAPSHOT.jar
 ```
 
 The URL http://localhost:8080/login will take you to the site login portal. Note that due to the way http sessions work,
