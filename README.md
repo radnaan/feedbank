@@ -1,7 +1,12 @@
 # Feedbank README
 CS261 Group project
 
-##Installation
+Group 8
+
+## Installation
+
+The installation guide is set up for windows, however similar steps would be required for other operating systems.
+
 Install Postgres 12 onto your device with pgadmin for ease of use.
 
 Windows installer: https://www.postgresql.org/download/windows/
@@ -25,7 +30,7 @@ In the pgAdmin4 go to Servers -> PostgreSQL -> Databases. Right click on Databas
 Then select springfeedbank, and at the top go into Tools -> Query Tool. 
 Copy the database Schema in src\main\resources\static\schema.sql into the pgAdmin4 query editor and run it.
 
-Ensure that PostgresSql->Properties>Connection has port number set to 5432.
+Ensure that PostgresSql -> Properties -> Connection has port number set to 5432.
 
 Start the spring server on local host by running the executable jar feedbank.jar:
  ```bash
