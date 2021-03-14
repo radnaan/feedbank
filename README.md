@@ -11,6 +11,8 @@ Install Postgres 12 onto your device with pgadmin for ease of use.
 
 Windows installer: https://www.postgresql.org/download/windows/
 
+Ensure python 3.5 or later is installed
+
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the following libraries using your terminal.
 
 ```bash
