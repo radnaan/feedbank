@@ -22,7 +22,7 @@ nltk.download('punkt')
 
 Ensure atleast java version 8 is installed.
 
-Start the Postgres server by opening pgAdmin. Ensure that PostgresSql->Properties>Connection has port number set to. 5432 and run the following query:
+Start the Postgres server by opening pgAdmin. Ensure that PostgresSql->Properties>Connection has port number set to 5432. Run the following query:
 
 ```SQL
 CREATE DATABASE springfeedbank;
