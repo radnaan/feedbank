@@ -1,7 +1,6 @@
 /*
 Table storing user data
 */
-DROP TABLE users CASCADE;
 CREATE TABLE users (
     UserID          SERIAL,
     FirstName       VARCHAR,
@@ -14,7 +13,6 @@ CREATE TABLE users (
 /*
 Table storing data about templates
 */
-DROP TABLE templates CASCADE;
 CREATE TABLE templates (
     TemplateID      SERIAL,
     TemplateName    VARCHAR NOT NULL,
@@ -25,7 +23,6 @@ CREATE TABLE templates (
 /*
 Table storing event data
 */
-DROP TABLE events CASCADE;
 CREATE TABLE events (
     EventID         SERIAL,
     EventName       VARCHAR NOT NULL,
@@ -42,7 +39,6 @@ CREATE TABLE events (
 /*
 Table storing data about sessions
 */
-DROP TABLE sesh CASCADE;
 CREATE TABLE sesh (
     SeshID          SERIAL,
     EventID         INTEGER NOT NULL,
@@ -59,7 +55,6 @@ CREATE TABLE sesh (
 /*
 Table storing user feedback
 */
-DROP TABLE feedback CASCADE;
 CREATE TABLE feedback (
     FeedbackID      SERIAL,
     UserID          INTEGER NOT NULL,
@@ -76,7 +71,6 @@ CREATE TABLE feedback (
 /*
 Table storing questions in templates
 */
-DROP TABLE questions CASCADE;
 CREATE TABLE questions (
     QuestionID      SERIAL,
     TemplateID      INTEGER NOT NULL,
@@ -89,7 +83,6 @@ CREATE TABLE questions (
 /*
 Table storing answers from feedback
 */
-DROP TABLE answers CASCADE;
 CREATE TABLE answers (
     AnswerID        SERIAL,
     QuestionID      INTEGER NOT NULL,
@@ -104,7 +97,6 @@ CREATE TABLE answers (
 /*
 Table storing which which users templates are assigned to
 */
-DROP TABLE user_templates CASCADE;
 CREATE TABLE user_templates (
     UserID          INTEGER NOT NULL,
     TemplateID      INTEGER NOT NULL,
@@ -116,7 +108,6 @@ CREATE TABLE user_templates (
 /*
 Table storing which which events users are part of
 */
-DROP TABLE user_events CASCADE;
 CREATE TABLE user_events (
     UserID          INTEGER NOT NULL,
     EventID         INTEGER NOT NULL,
@@ -321,6 +312,28 @@ CREATE OR REPLACE FUNCTION get_users(evID INTEGER)
     $$;
 
 /*
+Function used to update the status of events based on whether they have a session currently running
+*/
+CREATE OR REPLACE FUNCTION update_activity()
+    RETURNS void
+    LANGUAGE SQL AS
+    $$
+    UPDATE events SET EventStatus = 'Inactive without future session' WHERE EventStatus <> 'Ended';
+    UPDATE events SET EventStatus = 'Active' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
+    );
+    UPDATE events SET EventStatus = 'Inactive with future session' 
+    WHERE EventID IN (
+        SELECT eventID 
+        FROM events INNER JOIN sesh 
+        USING (EventID) WHERE seshdatestart > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
+    );
+    $$;
+
+/*
 Function used to get all events which a user is part of
 */
 CREATE OR REPLACE FUNCTION get_events(usID INTEGER)
@@ -377,28 +390,6 @@ CREATE OR REPLACE FUNCTION get_session_info( evid INTEGER,sshid INTEGER)
 		FROM Events INNER JOIN  sesh ON Events.EventID = sesh.EventID 
         INNER JOIN Templates ON  sesh.templateID = Templates.templateID
 		WHERE Events.EventID= evid AND sesh.SeshID = sshid;
-    $$;
-
-/*
-Function used to update the status of events based on whether they have a session currently running
-*/
-CREATE OR REPLACE FUNCTION update_activity()
-    RETURNS void
-    LANGUAGE SQL AS
-    $$
-    UPDATE events SET EventStatus = 'Inactive without future session' WHERE EventStatus <> 'Ended';
-    UPDATE events SET EventStatus = 'Active' 
-    WHERE EventID IN (
-        SELECT eventID 
-        FROM events INNER JOIN sesh 
-        USING (EventID) WHERE seshdatestart < CURRENT_TIMESTAMP AND seshdateend > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
-    );
-    UPDATE events SET EventStatus = 'Inactive with future session' 
-    WHERE EventID IN (
-        SELECT eventID 
-        FROM events INNER JOIN sesh 
-        USING (EventID) WHERE seshdatestart > CURRENT_TIMESTAMP AND eventStatus = 'Inactive without future session'
-    );
     $$;
 
 /*
