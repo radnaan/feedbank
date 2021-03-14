@@ -11,7 +11,7 @@ Install Postgres 12 onto your device with pgadmin for ease of use.
 
 Windows installer: https://www.postgresql.org/download/windows/
 
-Ensure python 3.5 or later is installed
+Ensure Python 3.5 or later is installed
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the following libraries using your terminal.
 
@@ -24,7 +24,7 @@ Then run script.py by typing this in your terminal
 python script.py
 ```
 
-Ensure atleast java version 8 is installed.
+Ensure at least Java version 8 is installed.
 
 Start the Postgres server by opening pgAdmin4. 
 In the pgAdmin4 go to Servers -> PostgreSQL -> Databases. Right click on Databases and create a new database called *springfeedback* with all other settings at default and save.
